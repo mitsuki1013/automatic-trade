@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -25,9 +24,10 @@ func GetPermission() (*[]permission, error) {
 	defer res.Body.Close()
 
 	body, _ := ioutil.ReadAll(res.Body)
+
 	var permissions []permission
 	if err := json.Unmarshal(body, &permissions); err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	return &permissions, nil
