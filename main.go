@@ -2,9 +2,11 @@ package main
 
 import (
 	"automatic-trade/app"
+	"automatic-trade/app/usecase"
 	"fmt"
 	"github.com/joho/godotenv"
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -12,7 +14,10 @@ func main() {
 		log.Fatalf("Error loading .env file\nError: %v", err)
 	}
 
-	permissions, err := app.GetPermission()
+	r := app.NewPrivateRequest("/v1/me/getpermissions", http.MethodGet)
+	permissionUseCase := usecase.NewPermissionUseCase(app.NewGetPermissionRequest(r))
+
+	permissions, err := permissionUseCase.GetPermission()
 	if err != nil {
 		fmt.Println(err)
 	}

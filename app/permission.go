@@ -3,21 +3,25 @@ package app
 import (
 	"encoding/json"
 	"io/ioutil"
-	"net/http"
 )
 
-type permission string
+type Permission string
 
-func GetPermission() (*[]permission, error) {
-	path := "/v1/me/getpermissions"
-	requestConfig := NewRequestConfig(path, http.MethodGet)
+type GetPermissionRequest struct {
+	privateRequest *PrivateRequest
+}
 
-	req, err := requestConfig.NewPrivateRequest(nil)
+func NewGetPermissionRequest(privateRequest *PrivateRequest) GetPermissionRequest {
+	return GetPermissionRequest{privateRequest: privateRequest}
+}
+
+func (g GetPermissionRequest) GetPermission() (*[]Permission, error) {
+	req, err := g.privateRequest.NewRequest(nil)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := requestConfig.PrivateRequest(req)
+	res, err := g.privateRequest.DoRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +29,7 @@ func GetPermission() (*[]permission, error) {
 
 	body, _ := ioutil.ReadAll(res.Body)
 
-	var permissions []permission
+	var permissions []Permission
 	if err := json.Unmarshal(body, &permissions); err != nil {
 		return nil, err
 	}

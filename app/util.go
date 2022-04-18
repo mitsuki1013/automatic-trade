@@ -11,30 +11,21 @@ import (
 	"time"
 )
 
-type RequestConfig struct {
+type PrivateRequest struct {
 	Path      string
 	Method    string
 	TimeStamp string
 }
 
-func NewRequestConfig(path string, method string) *RequestConfig {
-	return &RequestConfig{
+func NewPrivateRequest(path string, method string) *PrivateRequest {
+	return &PrivateRequest{
 		Path:      path,
 		Method:    method,
 		TimeStamp: strconv.FormatInt(time.Now().Unix(), 10),
 	}
 }
 
-func (c RequestConfig) newAccessSign() string {
-	secret := os.Getenv("API_SECRET")
-
-	text := c.TimeStamp + c.Method + c.Path
-	hash := hmac.New(sha256.New, []byte(secret))
-	hash.Write([]byte(text))
-	return hex.EncodeToString(hash.Sum(nil))
-}
-
-func (c RequestConfig) NewPrivateRequest(body io.Reader) (*http.Request, error) {
+func (c PrivateRequest) NewRequest(body io.Reader) (*http.Request, error) {
 	uri := os.Getenv("URI")
 
 	req, err := http.NewRequest(c.Method, uri+c.Path, body)
@@ -45,13 +36,13 @@ func (c RequestConfig) NewPrivateRequest(body io.Reader) (*http.Request, error) 
 	return req, nil
 }
 
-func (c RequestConfig) PrivateRequest(req *http.Request) (*http.Response, error) {
+func (c PrivateRequest) DoRequest(req *http.Request) (*http.Response, error) {
 	key := os.Getenv("API_KEY")
 
 	req.Header.Set("content-type", "application/json; charset=UTF-8")
 	req.Header.Set("ACCESS-KEY", key)
 	req.Header.Set("ACCESS-TIMESTAMP", c.TimeStamp)
-	req.Header.Set("ACCESS-SIGN", c.newAccessSign())
+	req.Header.Set("ACCESS-SIGN", newAccessSign(c.TimeStamp, c.Method, c.Path))
 
 	client := new(http.Client)
 	res, err := client.Do(req)
@@ -60,4 +51,13 @@ func (c RequestConfig) PrivateRequest(req *http.Request) (*http.Response, error)
 	}
 
 	return res, nil
+}
+
+func newAccessSign(timeStamp string, method string, path string) string {
+	secret := os.Getenv("API_SECRET")
+
+	text := timeStamp + method + path
+	hash := hmac.New(sha256.New, []byte(secret))
+	hash.Write([]byte(text))
+	return hex.EncodeToString(hash.Sum(nil))
 }
