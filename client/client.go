@@ -1,4 +1,4 @@
-package app
+package client
 
 import (
 	"crypto/hmac"
@@ -11,22 +11,22 @@ import (
 	"time"
 )
 
-type PrivateRequest struct {
+type Client struct {
 	Path      string
 	Method    string
 	TimeStamp string
 }
 
-func NewPrivateRequest(path string, method string) *PrivateRequest {
-	return &PrivateRequest{
-		Path:      path,
-		Method:    method,
-		TimeStamp: strconv.FormatInt(time.Now().Unix(), 10),
-	}
+func NewClient() *Client {
+	return &Client{}
 }
 
-func (c PrivateRequest) NewRequest(body io.Reader) (*http.Request, error) {
+func (c *Client) NewRequest(method string, path string, body io.Reader) (*http.Request, error) {
 	uri := os.Getenv("URI")
+
+	c.Method = method
+	c.Path = path
+	c.TimeStamp = strconv.FormatInt(time.Now().Unix(), 10)
 
 	req, err := http.NewRequest(c.Method, uri+c.Path, body)
 	if err != nil {
@@ -36,7 +36,7 @@ func (c PrivateRequest) NewRequest(body io.Reader) (*http.Request, error) {
 	return req, nil
 }
 
-func (c PrivateRequest) DoRequest(req *http.Request) (*http.Response, error) {
+func (c *Client) DoRequest(req *http.Request) (*http.Response, error) {
 	key := os.Getenv("API_KEY")
 
 	req.Header.Set("content-type", "application/json; charset=UTF-8")

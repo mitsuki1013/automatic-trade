@@ -1,27 +1,29 @@
-package app
+package api
 
 import (
+	"automatic-trade/client"
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
 )
 
 type Permission string
 
 type GetPermissionRequest struct {
-	privateRequest *PrivateRequest
+	client *client.Client
 }
 
-func NewGetPermissionRequest(privateRequest *PrivateRequest) GetPermissionRequest {
-	return GetPermissionRequest{privateRequest: privateRequest}
+func NewGetPermissionRequest(client *client.Client) GetPermissionRequest {
+	return GetPermissionRequest{client: client}
 }
 
 func (g GetPermissionRequest) GetPermission() (*[]Permission, error) {
-	req, err := g.privateRequest.NewRequest(nil)
+	req, err := g.client.NewRequest(http.MethodGet, "/v1/me/getpermissions", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := g.privateRequest.DoRequest(req)
+	res, err := g.client.DoRequest(req)
 	if err != nil {
 		return nil, err
 	}
