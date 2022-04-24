@@ -1,0 +1,13 @@
+version: '3.4'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/go/Dockerfile
+      args:
+        BUILD_TARGET: "./app"
+      target: build
+    volumes:
+      - "./app:/app"
+    command: ["air", "-c", ".air.toml"]
+    platform: "linux/x86_64"
