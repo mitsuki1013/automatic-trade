@@ -10,3 +10,6 @@ reload-app:
 	@docker cp ./app/main $(pid):/app/main
 	@docker restart $(pid)
 	@rm -f ./app/main
+
+exec:
+	@docker compose exec app go run .
